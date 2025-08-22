@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: fh25-chat-api
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: "npm install"
+    startCommand: "npm start"
+    runtime: node
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: MODEL
+        value: gpt-4o-mini
+    autoDeploy: true
+
