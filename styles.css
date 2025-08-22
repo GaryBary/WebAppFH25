@@ -209,4 +209,9 @@ h2 {
 .chat-input { flex: 1; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--fg); }
 .chat-send { background: var(--accent-3); color: #02150d; border: none; border-radius: 10px; padding: 10px 14px; font-weight: 700; cursor: pointer; }
 
-
+.msg-form { display:flex; gap:8px; flex-wrap:wrap; }
+#msg-author { padding:8px 10px; border-radius:10px; border:1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--fg); }
+.msg-input { flex:1; min-width:200px; padding:10px 12px; border-radius:10px; border:1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--fg); }
+.msg-send { background: var(--accent-3); color:#02150d; border:none; border-radius:10px; padding:10px 14px; font-weight:700; cursor:pointer; }
+.msg-item { padding:10px 12px; border-radius:12px; background: var(--card); border:1px solid var(--border); }
+.msg-meta { font-size:12px; color:var(--muted); margin-bottom:4px; }
