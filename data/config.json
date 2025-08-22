@@ -5,20 +5,20 @@
 		"tourDate": "2025-11-13T00:00:00",
 		"hero": {
 			"headline": "Fat Hacks 2025",
-			"subheadline": "Adventure. Golf. Good times."
+			"subheadline": "Booze. Golf. Good times."
 		}
 	},
 	"flights": {
 		"departure": {
 			"airportFrom": "Melbourne",
 			"airportTo": "Goldcoast",
-			"flightNumber": "FH2025",
+			"flightNumber": "V987",
 			"datetime": "2025-11-13T11:10:00"
 		},
 		"return": {
 			"airportFrom": "Goldcoast",
 			"airportTo": "Melbourne",
-			"flightNumber": "FH2025R",
+			"flightNumber": "V234",
 			"datetime": "2025-11-16T13:10:00"
 		}
 	},
@@ -30,9 +30,9 @@
 		"mapUrl": "https://maps.google.com"
 	},
 	"golfEvents": [
-		{ "course": "Trump National LA", "dateTime": "2025-06-12T08:00:00-07:00", "address": "1 Trump National Dr, Rancho Palos Verdes, CA" },
-		{ "course": "Rustic Canyon", "dateTime": "2025-06-14T07:30:00-07:00", "address": "15100 Happy Camp Canyon Rd, Moorpark, CA" },
-		{ "course": "Sandpiper Golf Club", "dateTime": "2025-06-17T09:15:00-07:00", "address": "7925 Hollister Ave, Goleta, CA" }
+		{ "course": "Tweed Heads", "dateTime": "2025-06-12T08:00:00-07:00", "address": "1 Tweed Heads Dr, Tweed Heads, NSW" },
+		{ "course": "Southport", "dateTime": "2025-06-14T07:30:00-07:00", "address": "Southport, Southport, QLD" },
+		{ "course": "Broadwaters", "dateTime": "2025-06-17T09:15:00-07:00", "address": "Broadwaters, Broadbeach, QLD" }
 	]
 }
 
