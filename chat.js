@@ -1,7 +1,7 @@
 // Default bot knowledge and persona; will be overlaid by data/bot-knowledge.json if available
 const defaultBot = {
 	persona: {
-		name: "Assistant",
+		name: "Lacisha",
 		tone: "friendly, concise, helpful",
 		style: "Use short sentences. Be upbeat and encouraging."
 	},
