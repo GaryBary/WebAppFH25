@@ -88,17 +88,23 @@ async function sendChat(apiBase, messages) {
 	const apiBase = bot?.api?.baseUrl || '/api/chat';
 	const systemPrompt = buildSystemPrompt(bot);
 
-	toggle.addEventListener('click', () => {
-		const expanded = toggle.getAttribute('aria-expanded') === 'true';
-		toggle.setAttribute('aria-expanded', String(!expanded));
-		panel.hidden = expanded;
-		if (!expanded) input.focus();
-	});
-	closeBtn.addEventListener('click', () => {
-		panel.hidden = true; toggle.setAttribute('aria-expanded', 'false');
-	});
+	const titleEl = document.querySelector('.chat-title');
+if (titleEl && bot?.persona?.name) titleEl.textContent = bot.persona.name;
 
-	appendMessage(log, 'bot', `Hi! I'm ${bot?.persona?.name || 'your assistant'}. How can I help?`);
+// start CLOSED
+panel.hidden = true;
+toggle.setAttribute('aria-expanded','false');
+	
+	function isOpen() { return !panel.hidden; }
+function openChat() { panel.hidden = false; toggle.setAttribute('aria-expanded','true'); input.focus(); }
+function closeChat() { panel.hidden = true; toggle.setAttribute('aria-expanded','false'); }
+
+toggle.addEventListener('click', () => (isOpen() ? closeChat() : openChat()));
+closeBtn.addEventListener('click', (e) => { e.preventDefault(); closeChat(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isOpen()) closeChat(); });
+
+const greeting = bot?.persona?.greeting || `Hi! I'm ${bot?.persona?.name || 'your assistant'}. How can I help?`;
+appendMessage(log, 'bot', greeting);
 
 	let history = [{ role: 'system', content: systemPrompt }];
 
