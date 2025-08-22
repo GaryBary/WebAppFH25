@@ -52,7 +52,25 @@
 			</div>
 		</section>
 	</main>
+<section id="messages" class="section">
+	<div class="container">
+		<h2>Messages</h2>
+		<div class="card">
+			<form id="msg-form" class="msg-form" autocomplete="off">
+				<select id="msg-author" required>
+					<option value="" disabled selected>Select your name</option>
+					<option>Robbie</option><option>Ronnie</option><option>Seko</option><option>Marty</option>
+					<option>Stork</option><option>Buzza</option><option>Bear</option><option>Tosca</option>
+				</select>
+				<input id="msg-text" class="msg-input" type="text" maxlength="500" placeholder="Write a message…" required />
+				<button class="msg-send" type="submit">Post</button>
+			</form>
+		</div>
+		<div id="msg-list" class="cards list"></div>
+	</div>
+</section>
 
+<script src="messages.js"></script>
 	<footer class="site-footer">
 		<div class="container">
 			<small>&copy; <span id="year"></span> Fat Hacks</small>
