@@ -89,24 +89,24 @@ async function sendChat(apiBase, messages) {
 	const systemPrompt = buildSystemPrompt(bot);
 
 	const titleEl = document.querySelector('.chat-title');
-if (titleEl && bot?.persona?.name) titleEl.textContent = bot.persona.name;
+	if (titleEl && bot?.persona?.name) titleEl.textContent = bot.persona.name;
 
-// start CLOSED
-panel.hidden = true;
-toggle.setAttribute('aria-expanded','false');
-	
-	function isOpen() { return !panel.hidden; }
-function openChat() { panel.hidden = false; toggle.setAttribute('aria-expanded','true'); input.focus(); }
-function closeChat() { panel.hidden = true; toggle.setAttribute('aria-expanded','false'); }
-
-toggle.addEventListener('click', () => (isOpen() ? closeChat() : openChat()));
-closeBtn.addEventListener('click', (e) => { e.preventDefault(); closeChat(); });
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isOpen()) closeChat(); });
-
-const greeting = bot?.persona?.greeting || `Hi! I'm ${bot?.persona?.name || 'your assistant'}. How can I help?`;
-appendMessage(log, 'bot', greeting);
+	// start closed
+	panel.hidden = true;
+	toggle.setAttribute('aria-expanded', 'false');
 
 	let history = [{ role: 'system', content: systemPrompt }];
+
+	function isOpen() { return !panel.hidden; }
+	function openChat() { panel.hidden = false; toggle.setAttribute('aria-expanded','true'); input.focus(); }
+	function closeChat() { panel.hidden = true; toggle.setAttribute('aria-expanded','false'); }
+
+	toggle.addEventListener('click', () => (isOpen() ? closeChat() : openChat()));
+	closeBtn.addEventListener('click', (e) => { e.preventDefault(); closeChat(); });
+	document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isOpen()) closeChat(); });
+
+	const greeting = bot?.persona?.greeting || `Hi! I'm ${bot?.persona?.name || 'your assistant'}. How can I help?`;
+	appendMessage(log, 'bot', greeting);
 
 	form.addEventListener('submit', async (e) => {
 		e.preventDefault();
@@ -118,15 +118,20 @@ appendMessage(log, 'bot', greeting);
 		pending.className = 'chat-msg bot'; pending.textContent = '…'; log.appendChild(pending);
 		try {
 			const messages = [...history, { role: 'user', content: text }];
-			const reply = await sendChat(apiBase, messages);
+			const res = await fetch(apiBase, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ messages })
+			});
+			const data = await res.json().catch(() => ({}));
 			pending.remove();
-			appendMessage(log, 'bot', reply);
-			history = [...messages, { role: 'assistant', content: reply }];
+			if (!res.ok || !data.reply) { appendMessage(log, 'bot', 'Error contacting chat API.'); return; }
+			appendMessage(log, 'bot', data.reply);
+			history = [...messages, { role: 'assistant', content: data.reply }];
 		} catch (err) {
-			pending.textContent = 'Error contacting chat API.';
+			pending.remove();
+			appendMessage(log, 'bot', 'Error contacting chat API.');
 			console.error(err);
 		}
 	});
 })();
-
-
