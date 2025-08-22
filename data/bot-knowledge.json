@@ -14,7 +14,7 @@
 		"model": "gpt-4o-mini"
 	},
 	"api": {
-		"baseUrl": "/api/chat"
+		"baseUrl": "https://webappfh25.onrender.com/api/chat"
 	}
 }
 
