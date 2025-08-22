@@ -1,6 +1,6 @@
 # Fat Hacks 2025 – Mobile-first Web App
 
-A slick, mobile-friendly static site for the Fat Hacks 2025 tour. All content is controlled by a single JSON file (`data/config.json`) that only you edit. There is no public UI for changing details.
+A slick, mobile-friendly  static site for the Fat Hacks 2025 tour. All content is controlled by a single JSON file (`data/config.json`) that only you edit. There is no public UI for changing details.
 
 ## Quick start
 
