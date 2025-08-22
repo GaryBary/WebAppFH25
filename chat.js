@@ -49,7 +49,7 @@ function buildSystemPrompt(bot) {
 	const persona = bot?.persona || {};
 	const knowledge = bot?.knowledge || [];
 	return [
-		`You are ${persona.name || 'Assistant'}.`,
+		`You are ${persona.name || 'Lacisha'}.`,
 		persona.tone ? `Tone: ${persona.tone}.` : '',
 		persona.style ? `Style: ${persona.style}.` : '',
 		'Use the following facts as authoritative context. If unsure, ask a brief follow-up.',
