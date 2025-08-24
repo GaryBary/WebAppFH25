@@ -31,6 +31,7 @@ async function ensureTables() {
 ensureTables().catch(console.error);
 
 const ALLOWED = new Set(['Robbie','Ronnie','Seko','Marty','Stork','Buzza','Bear','Tosca']);
+const DELETE_TOKEN = process.env.DELETE_TOKEN || process.env.ADMIN_DELETE_TOKEN;
 
 // Messages API
 app.get('/api/messages', async (req, res) => {
@@ -61,6 +62,39 @@ app.post('/api/messages', async (req, res) => {
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'internal' });
+  }
+});
+
+// Admin-only deletion routes
+app.delete('/api/messages/:id', async (req, res) => {
+  if (!pool) return res.status(500).json({ error: 'db_not_configured' });
+  if (!DELETE_TOKEN) return res.status(500).json({ error: 'delete_token_not_configured' });
+  const token = req.headers['x-admin-token'];
+  if (token !== DELETE_TOKEN) return res.status(403).json({ error: 'forbidden' });
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: 'invalid_id' });
+  try {
+    await pool.query('DELETE FROM messages WHERE id=$1', [id]);
+    return res.json({ ok: true, id });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: 'internal' });
+  }
+});
+
+app.get('/api/messages/delete', async (req, res) => {
+  if (!pool) return res.status(500).json({ error: 'db_not_configured' });
+  if (!DELETE_TOKEN) return res.status(500).json({ error: 'delete_token_not_configured' });
+  const token = String(req.query.token || '');
+  if (token !== DELETE_TOKEN) return res.status(403).json({ error: 'forbidden' });
+  const id = Number(req.query.id);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: 'invalid_id' });
+  try {
+    await pool.query('DELETE FROM messages WHERE id=$1', [id]);
+    return res.json({ ok: true, id });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: 'internal' });
   }
 });
 

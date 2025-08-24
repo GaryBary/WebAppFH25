@@ -88,6 +88,12 @@ async function sendChat(apiBase, messages) {
 	const apiBase = bot?.api?.baseUrl || '/api/chat';
 	const systemPrompt = buildSystemPrompt(bot);
 
+	// Ensure header shows persona name and panel starts closed
+	const titleEl = document.querySelector('.chat-title');
+	if (titleEl && bot?.persona?.name) titleEl.textContent = bot.persona.name;
+	panel.hidden = true;
+	toggle.setAttribute('aria-expanded', 'false');
+
 	toggle.addEventListener('click', () => {
 		const expanded = toggle.getAttribute('aria-expanded') === 'true';
 		toggle.setAttribute('aria-expanded', String(!expanded));
@@ -98,7 +104,8 @@ async function sendChat(apiBase, messages) {
 		panel.hidden = true; toggle.setAttribute('aria-expanded', 'false');
 	});
 
-	appendMessage(log, 'bot', `Hi! I'm ${bot?.persona?.name || 'your assistant'}. How can I help?`);
+	const greeting = bot?.persona?.greeting || `Hi! I'm ${bot?.persona?.name || 'your assistant'}. How can I help?`;
+	appendMessage(log, 'bot', greeting);
 
 	let history = [{ role: 'system', content: systemPrompt }];
 
