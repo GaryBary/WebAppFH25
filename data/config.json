@@ -10,11 +10,11 @@
     "return":    { "airportFrom": "Goldcoast", "airportTo": "Melbourne", "flightNumber": "V234", "datetime": "2025-11-16T13:10:00" }
   },
   "accommodation": {
-    "name": "Burleigh Beach House",
-    "address": "3 Albert St , Burleigh Heads",
+    "name": "Ultimate Vacation Haven",
+    "address": "219 Stanhill Drive, Surfers Paradise",
     "checkIn": "2025-11-13 15:00",
     "checkOut": "2025-11-16 10:00",
-    "mapUrl": "https://www.google.com/maps/place/3+Albert+St,+Burleigh+Heads+QLD+4220/@-28.0925148,153.4537638,1064m/data=!3m2!1e3!4b1!4m6!3m5!1s0x6b91039684789c47:0x816dbddd617d2b51!8m2!3d-28.0925196!4d153.4563387!16s%2Fg%2F11c14pwjkm?entry=ttu&g_ep=EgoyMDI1MDgxOS4wIKXMDSoASAFQAw%3D%3D"
+    "mapUrl": "https://google.com/maps/place/219+Stanhill+Dr,+Surfers+Paradise+QLD+4217/data=!4m2!3m1!1s0x6b91056ae35e27df:0x3f4aec0f228987ea?sa=X&ved=1t:242&ictx=111"
   },
   "players": [
     { "name": "Stork",  "ranking": 3, "handicap": 0,  "profile": "Tall, long streak of misery. Loves the bitch slap style golf, but could have other things on his mind - his special lady Angie." },
@@ -29,11 +29,11 @@
     { "course": "Champions Cup - Burleigh Golf Club (TBD)", "dateTime": "TBD", "address": "Miami QLD" }
   ],
   "looseItinerary": [
-    { "title": "Night clubs", "notes": "Options only, subject to vibes." },
-    { "title": "Swim & surf", "notes": "Beach session if weather permits." },
-    { "title": "Pubs and counters", "notes": "Pub meals and beers nearby." },
-    { "title": "BBQs", "notes": "Casual cook-ups at accommodation or parks." },
+    { "title": "Night clubs", "notes": "Old man orgie." },
+    { "title": "Swim & surf", "notes": "Regular beach sessions for the diehards." },
+    { "title": "Pubs and counters", "notes": "Pub meals & beers nearby." },
+    { "title": "BBQs on the balcony", "notes": "Casual fry-ups daily." },
     { "title": "Local establishments", "notes": "Explore local recommendations." },
-    { "title": "Arvo sess and shrooms", "notes": "Optional chill sessions." }
+    { "title": "Arvo sess and shrooms", "notes": "Chill sessions daily." }
   ]
 }

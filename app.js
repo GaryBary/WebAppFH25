@@ -24,11 +24,11 @@ const defaultData = {
 		}
 	},
 	accommodation: {
-		name: "Burleigh Beach House",
-		address: "3 Albert St , Burleigh Heads",
+		name: "Ultimate Vacation Haven",
+		address: "219 Stanhill Drive, Surfers Paradise",
 		checkIn: "2025-06-10",
 		checkOut: "2025-06-20",
-		mapUrl: "https://www.google.com/maps/place/3+Albert+St,+Burleigh+Heads+QLD+4220/@-28.0925148,153.4537638,1064m/data=!3m2!1e3!4b1!4m6!3m5!1s0x6b91039684789c47:0x816dbddd617d2b51!8m2!3d-28.0925196!4d153.4563387!16s%2Fg%2F11c14pwjkm?entry=ttu&g_ep=EgoyMDI1MDgxOS4wIKXMDSoASAFQAw%3D%3D"
+		mapUrl: "https://google.com/maps/place/219+Stanhill+Dr,+Surfers+Paradise+QLD+4217/data=!4m2!3m1!1s0x6b91056ae35e27df:0x3f4aec0f228987ea?sa=X&ved=1t:242&ictx=111"
 	},
 	looseItinerary: [
 		{ title: 'Night clubs', notes: 'Option for evenings if energy allows.' },
