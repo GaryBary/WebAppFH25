@@ -130,34 +130,60 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
       return res.status(400).json({ error: 'invalid_golfer' });
     }
 
-    // Create a simple green background to simulate a putting green
+    // If configured, use Stability AI for photorealistic image-to-image generation
+    const provider = (process.env.IMAGE_PROVIDER || '').toLowerCase();
+    const stabilityKey = process.env.STABILITY_API_KEY;
+    if (provider === 'stability' && stabilityKey) {
+      try {
+        const prompt = `A photorealistic candid photograph of the user and ${golfer} on a golf putting green at golden hour, sharing beers, laughing, best pals, natural skin tones, 35mm lens, shallow depth of field, no text, no logos.`;
+        const form = new FormData();
+        const mime = req.file.mimetype || 'image/jpeg';
+        const blob = new Blob([req.file.buffer], { type: mime });
+        form.append('image', blob, 'input');
+        form.append('prompt', prompt);
+        form.append('output_format', 'png');
+        form.append('strength', '0.45');
+
+        const r = await fetch('https://api.stability.ai/v2beta/stable-image/image-to-image', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${stabilityKey}`, Accept: 'image/*' },
+          body: form
+        });
+        if (!r.ok) {
+          const detail = await r.text();
+          return res.status(502).json({ error: 'stability_error', detail });
+        }
+        const arrayBuf = await r.arrayBuffer();
+        const outBuf = Buffer.from(arrayBuf);
+        const dataUrl = `data:image/png;base64,${outBuf.toString('base64')}`;
+        return res.json({ imageUrl: dataUrl, provider: 'stability' });
+      } catch (e) {
+        console.error('stability_failed', e);
+        // fall through to local composite
+      }
+    }
+
+    // Local MVP composite fallback (no keys required)
     const width = 1024;
     const height = 768;
-    const bg = await new Jimp(width, height, 0xff1f6d2a); // solid grass green
-
-    // Vignetting and a lighter green ellipse to suggest a green
+    const bg = await new Jimp(width, height, 0xff1f6d2a);
     const vignette = await new Jimp(width, height, 0x00000040);
     vignette.blur(50);
     bg.composite(vignette, 0, 0, { mode: Jimp.BLEND_MULTIPLY });
-
-    // User photo on left
     const userImg = await Jimp.read(req.file.buffer);
     const targetH = Math.min(520, userImg.getHeight());
     userImg.scaleToFit(Math.floor(width * 0.45), targetH);
     const userX = Math.floor(width * 0.06);
     const userY = Math.floor(height * 0.18);
     bg.composite(userImg, userX, userY);
-
-    // Load font and add text (acts as caption while we don’t have golfer cutouts yet)
     const fontTitle = await Jimp.loadFont(Jimp.FONT_SANS_64_WHITE);
     const fontSmall = await Jimp.loadFont(Jimp.FONT_SANS_32_WHITE);
     const caption = `You & ${golfer}`;
     bg.print(fontTitle, Math.floor(width * 0.52), Math.floor(height * 0.22), caption);
     bg.print(fontSmall, Math.floor(width * 0.52), Math.floor(height * 0.22) + 80, 'On the green • beers • good times');
-
     const out = await bg.getBufferAsync(Jimp.MIME_PNG);
     const dataUrl = `data:image/png;base64,${out.toString('base64')}`;
-    return res.json({ imageUrl: dataUrl });
+    return res.json({ imageUrl: dataUrl, provider: 'fallback' });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ error: 'internal' });
