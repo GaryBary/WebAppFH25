@@ -101,6 +101,11 @@ app.get('/api/messages/delete', async (req, res) => {
   }
 });
 
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ ok: true, uptime: process.uptime() });
+});
+
 // --- Fan Photo Generator (MVP compositing) ---
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 6 * 1024 * 1024 } });
 

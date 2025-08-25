@@ -63,8 +63,14 @@
 			form.append('image', file);
 			form.append('golfer', golfer);
 			const res = await fetch(`${apiBase}/api/photo/generate`, { method: 'POST', body: form});
-			if (!res.ok) throw new Error('HTTP ' + res.status);
-			const data = await res.json();
+			if (!res.ok) {
+				const detail = await res.text().catch(()=>'');
+				throw new Error(`HTTP ${res.status} ${res.statusText} ${detail || ''}`.trim());
+			}
+			const data = await res.json().catch(async () => {
+				const txt = await res.text();
+				throw new Error('Invalid JSON: ' + txt.slice(0,200));
+			});
 			const url = data?.imageUrl;
 			if (url) {
 				const img = document.createElement('img');
@@ -76,7 +82,7 @@
 			}
 		} catch (err) {
 			console.error(err);
-			statusEl.textContent = 'Generation failed. Try again later.';
+			statusEl.textContent = 'Generation failed: ' + (err?.message || 'Unknown error');
 		} finally {
 			generateBtn.disabled = false;
 		}
