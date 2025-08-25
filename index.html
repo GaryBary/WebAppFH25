@@ -79,6 +79,22 @@
 				<div class="cards list" id="itinerary-list"></div>
 			</div>
 		</section>
+
+		<section id="fan-photo" class="section">
+			<div class="container">
+				<h2>Fan Photo Generator</h2>
+				<div class="card">
+					<p class="meta">Upload your photo and pick a golfer. We’ll generate a fun, realistic shot of you both on the green.</p>
+					<div class="row" style="gap:12px; align-items:flex-start; flex-wrap:wrap;">
+						<input id="photo-file" type="file" accept="image/*" capture="environment">
+						<select id="photo-golfer"></select>
+						<button id="photo-generate" class="chat-send" type="button" disabled>Generate</button>
+					</div>
+					<div id="photo-status" class="meta" style="margin-top:8px"></div>
+					<div id="photo-result" style="margin-top:12px"></div>
+				</div>
+			</div>
+		</section>
 	</main>
 <section id="messages" class="section">
 	<div class="container">
@@ -124,6 +140,7 @@
 	</div>
 
 	<script src="app.js"></script>
+	<script src="photo.js"></script>
 	<script src="chat.js"></script>
 </body>
 </html>
