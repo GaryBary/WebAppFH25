@@ -60,7 +60,12 @@ async function loadConfig() {
 	}
 	try {
 		const cacheBust = Date.now();
-		const res = await fetch(`data/config.json?_cb=${cacheBust}`, { cache: 'no-store' });
+		const isGithubRepoView = location.hostname === 'github.com' || location.hostname === 'www.github.com';
+		const configUrl = isGithubRepoView
+			? 'https://raw.githubusercontent.com/GaryBary/WebAppFH25/main/data/config.json'
+			: `data/config.json?_cb=${cacheBust}`;
+		if (isGithubRepoView) console.warn('[config] GitHub repo viewer detected; loading config from raw.githubusercontent.com');
+		const res = await fetch(configUrl, { cache: 'no-store' });
 		if (!res.ok) throw new Error(`HTTP ${res.status}`);
 		const remote = await res.json();
 		return deepMerge(structuredClone(defaultData), remote);
