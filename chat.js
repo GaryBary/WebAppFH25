@@ -94,8 +94,13 @@ async function sendChat(apiBase, messages) {
 		const nameSpan = titleEl.querySelector('.chat-name');
 		if (nameSpan && bot?.persona?.name) nameSpan.textContent = bot.persona.name;
 		const avatarEl = document.getElementById('chat-avatar');
-		const avatarUrl = bot?.persona?.avatar;
+		let avatarUrl = bot?.persona?.avatar;
+		const isGithubRepoView = location.hostname === 'github.com' || location.hostname === 'www.github.com';
 		if (avatarEl && avatarUrl) {
+			// If viewing on GitHub repo page, rewrite relative assets path to raw.githubusercontent.com
+			if (isGithubRepoView && avatarUrl.startsWith('assets/')) {
+				avatarUrl = `https://raw.githubusercontent.com/GaryBary/WebAppFH25/main/${avatarUrl}`;
+			}
 			avatarEl.hidden = true;
 			avatarEl.onload = () => { avatarEl.hidden = false; };
 			avatarEl.onerror = () => { avatarEl.hidden = true; };
