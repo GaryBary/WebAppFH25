@@ -3,6 +3,8 @@ import express from 'express';
 import cors from 'cors';
 import fetch from 'node-fetch';
 import pg from 'pg';
+import multer from 'multer';
+import Jimp from 'jimp';
 
 const { Pool } = pg;
 const app = express();
@@ -30,7 +32,8 @@ async function ensureTables() {
 }
 ensureTables().catch(console.error);
 
-const ALLOWED = new Set(['Robbie','Ronnie','Seko','Marty','Stork','Buzza','Bear','Tosca']);
+// Message board allowed names (keep in sync with frontend dropdown)
+const ALLOWED = new Set(['Robbie','Ronnie','Seko','Marty','Stork','Buzza']);
 const DELETE_TOKEN = process.env.DELETE_TOKEN || process.env.ADMIN_DELETE_TOKEN;
 
 // Messages API
@@ -92,6 +95,64 @@ app.get('/api/messages/delete', async (req, res) => {
   try {
     await pool.query('DELETE FROM messages WHERE id=$1', [id]);
     return res.json({ ok: true, id });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ error: 'internal' });
+  }
+});
+
+// --- Fan Photo Generator (MVP compositing) ---
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 6 * 1024 * 1024 } });
+
+const TOP_GOLFERS = [
+  'Scottie Scheffler','Rory McIlroy','Xander Schauffele','Russell Henley','Collin Morikawa'
+];
+const ALT_GOLFERS = [
+  'Greg Norman','Tiger Woods','John Daly','Phil Mickelson','Bubba Watson','Bryson DeChambeau'
+];
+
+function isAllowedGolfer(name) {
+  return TOP_GOLFERS.includes(name) || ALT_GOLFERS.includes(name);
+}
+
+app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
+  try {
+    const golfer = String(req.body?.golfer || '').trim();
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({ error: 'image_required' });
+    }
+    if (!isAllowedGolfer(golfer)) {
+      return res.status(400).json({ error: 'invalid_golfer' });
+    }
+
+    // Create a simple green background to simulate a putting green
+    const width = 1024;
+    const height = 768;
+    const bg = await new Jimp(width, height, 0xff1f6d2a); // solid grass green
+
+    // Vignetting and a lighter green ellipse to suggest a green
+    const vignette = await new Jimp(width, height, 0x00000040);
+    vignette.blur(50);
+    bg.composite(vignette, 0, 0, { mode: Jimp.BLEND_MULTIPLY });
+
+    // User photo on left
+    const userImg = await Jimp.read(req.file.buffer);
+    const targetH = Math.min(520, userImg.getHeight());
+    userImg.scaleToFit(Math.floor(width * 0.45), targetH);
+    const userX = Math.floor(width * 0.06);
+    const userY = Math.floor(height * 0.18);
+    bg.composite(userImg, userX, userY);
+
+    // Load font and add text (acts as caption while we don’t have golfer cutouts yet)
+    const fontTitle = await Jimp.loadFont(Jimp.FONT_SANS_64_WHITE);
+    const fontSmall = await Jimp.loadFont(Jimp.FONT_SANS_32_WHITE);
+    const caption = `You & ${golfer}`;
+    bg.print(fontTitle, Math.floor(width * 0.52), Math.floor(height * 0.22), caption);
+    bg.print(fontSmall, Math.floor(width * 0.52), Math.floor(height * 0.22) + 80, 'On the green • beers • good times');
+
+    const out = await bg.getBufferAsync(Jimp.MIME_PNG);
+    const dataUrl = `data:image/png;base64,${out.toString('base64')}`;
+    return res.json({ imageUrl: dataUrl });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ error: 'internal' });
