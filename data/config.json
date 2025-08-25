@@ -17,18 +17,23 @@
     "mapUrl": "https://www.google.com/maps/place/3+Albert+St,+Burleigh+Heads+QLD+4220/@-28.0925148,153.4537638,1064m/data=!3m2!1e3!4b1!4m6!3m5!1s0x6b91039684789c47:0x816dbddd617d2b51!8m2!3d-28.0925196!4d153.4563387!16s%2Fg%2F11c14pwjkm?entry=ttu&g_ep=EgoyMDI1MDgxOS4wIKXMDSoASAFQAw%3D%3D"
   },
   "players": [
-    { "name": "Stork",  "ranking": 5, "handicap": 0,  "profile": "Tall, long streak of misery. Loves the bitch slap style golf, but other things could be on his mind - Angie." },
-		{ "name": "Ronnie", "ranking": 7, "handicap": 0, "profile": "The Street Sweeper seems more pre-occupied with keeping the streets clean rather then focusing on his golf - prefer others." },
+    { "name": "Stork",  "ranking": 3, "handicap": 0,  "profile": "Tall, long streak of misery. Loves the bitch slap style golf, but could have other things on his mind - his special lady Angie." },
+		{ "name": "Ronnie", "ranking": 5, "handicap": 0, "profile": "The Street Sweeper seems more pre-occupied with keeping the streets clean rather then focusing on his golf - prefer others." },
 		{ "name": "Marty",  "ranking": 1, "handicap": 1, "profile": "Last years winner is back to do it all over again. He's fatter, angrier and more determined than ever - beware." },
 		{ "name": "Buzza",  "ranking": 2, "handicap": 0, "profile": "Somehow is always in the running. Laconic style, restless legs - could suprise." },
-		{ "name": "Robbie", "ranking": 6, "handicap": 0,  "profile": "For the amount of rounds he accumulates in a year, would assume a good showing -likely to dissapoint again." },
- 
-		{ "name": "Bear",   "ranking": 3, "handicap": 8,  "profile": "First time on the tour. Big swing, big hitter - beig fucken nose - lookout." },
-		{ "name": "Tosca",  "ranking": 4, "handicap": 7, "profile": "He'd give up all the tea in china to take this cup - beware a chinamans hunger - could take it." },
-		{ "name": "Seko",  "ranking": 8, "handicap": 0, "profile": "Last years runner up is hungry again. If he can manage to keep his mind on the job instead of thinking about pulling his cock, he could be a show - but very fucking doubtful." }
+		{ "name": "Robbie", "ranking": 4, "handicap": 0,  "profile": "For the amount of rounds this guy accumulates in a year, would assume a good showing -likely to dissapoint again." },
+ 		{ "name": "Seko",  "ranking": 6, "handicap": 0, "profile": "Last years runner up is hungry again. If he can manage to keep his mind on the job instead of thinking about pulling his cock, he could be a show - but very fucking doubtful." }
   ],
   "golfEvents": [
     { "course": "Tweed Heads", "dateTime": "2025-11-14T10:00:00+10:00", "address": "1 Tweed Heads Dr, Tweed Heads, NSW" },
     { "course": "Southport",   "dateTime": "2025-11-15T11:00:00+10:00", "address": "Southport, Southport, QLD" }
+  ],
+  "looseItinerary": [
+    { "title": "Night clubs", "notes": "Options only, subject to vibes." },
+    { "title": "Swim & surf", "notes": "Beach session if weather permits." },
+    { "title": "Pubs and counters", "notes": "Pub meals and beers nearby." },
+    { "title": "BBQs", "notes": "Casual cook-ups at accommodation or parks." },
+    { "title": "Local establishments", "notes": "Explore local recommendations." },
+    { "title": "Arvo sess and shrooms", "notes": "Optional chill sessions." }
   ]
 }

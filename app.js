@@ -30,6 +30,14 @@ const defaultData = {
 		checkOut: "2025-06-20",
 		mapUrl: "https://www.google.com/maps/place/3+Albert+St,+Burleigh+Heads+QLD+4220/@-28.0925148,153.4537638,1064m/data=!3m2!1e3!4b1!4m6!3m5!1s0x6b91039684789c47:0x816dbddd617d2b51!8m2!3d-28.0925196!4d153.4563387!16s%2Fg%2F11c14pwjkm?entry=ttu&g_ep=EgoyMDI1MDgxOS4wIKXMDSoASAFQAw%3D%3D"
 	},
+	looseItinerary: [
+		{ title: 'Night clubs', notes: 'Option for evenings if energy allows.' },
+		{ title: 'Swim & surf', notes: 'Beach sessions depending on weather.' },
+		{ title: 'Pubs and counters', notes: 'Classic pub meals and beers.' },
+		{ title: 'BBQs', notes: 'Casual cook-ups at accommodation or parks.' },
+		{ title: 'Local establishments', notes: 'Explore what the locals recommend.' },
+		{ title: 'Arvo sess and shrooms', notes: 'Optional afternoon chill sessions.' }
+	],
 	golfEvents: [
 		{ course: "Ocean Dunes", dateTime: "2025-06-12T08:00:00", address: "", notes: "Front nine warm-up" },
 		{ course: "Valley Links", dateTime: "2025-06-14T07:30:00", address: "", notes: "Early tee time" }
@@ -136,6 +144,21 @@ function renderGolfEvents(events) {
 	});
 }
 
+function renderItinerary(items) {
+	const root = document.getElementById('itinerary-list');
+	if (!root) return;
+	root.innerHTML = '';
+	(items || []).forEach((it) => {
+		const card = document.createElement('div');
+		card.className = 'card';
+		card.innerHTML = `
+			<div class="title" style="margin:0">${it.title || ''}</div>
+			${it.notes ? `<div class="meta">${it.notes}</div>` : ''}
+		`;
+		root.appendChild(card);
+	});
+}
+
 function startCountdown(targetIso, label) {
 	const daysEl = document.getElementById('cd-days');
 	const hoursEl = document.getElementById('cd-hours');
@@ -217,6 +240,7 @@ function initUI(data) {
 	renderFlights(data.flights);
 	renderAccommodation(data.accommodation);
 	renderGolfEvents(data.golfEvents);
+	renderItinerary(data.looseItinerary || defaultData.looseItinerary);
 }
 
 loadConfig().then(initUI);
