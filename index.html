@@ -7,10 +7,22 @@
 	<title>Fat Hacks 2025</title>
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-	<link rel="stylesheet" href="styles.css">
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+	<link id="site-css" rel="stylesheet" href="styles.css?v=6">
 </head>
 <body>
+    <script>
+    (function forceReloadCSS() {
+        try {
+            var link = document.getElementById('site-css');
+            if (!link) return;
+            var href = link.getAttribute('href') || 'styles.css';
+            var base = href.split('?')[0];
+            var stamp = Date.now();
+            link.setAttribute('href', base + '?v=' + stamp);
+        } catch (e) { /* no-op */ }
+    })();
+    </script>
 	<header class="site-header">
 		<div class="container">
 			<div class="brand">Fat Hacks</div>
@@ -20,15 +32,23 @@
 		<section class="hero">
 			<div class="container">
 				<h1 id="hero-headline">Fat Hacks 2025</h1>
-				<p id="hero-subheadline" class="subheadline">Freedom, no wives, no kids, just gold and good times.</p>
+				<p id="hero-subheadline" class="subheadline">Golf, Good Times, Booze & Shrooms</p>
 				<div class="countdown">
 					<div class="timer" id="countdown-timer">
 						<div class="time-segment"><span id="cd-days">0</span><label>Days</label></div>
-						<div class="time-segment"><span id="cd-minutes">0</span><label>Minutes</label></div>
-						<div class="time-segment"><span id="cd-seconds">0</span><label>Seconds</label></div>
+						<div class="time-segment"><span id="cd-hours">00</span><label>Hours</label></div>
+						<div class="time-segment"><span id="cd-minutes">00</span><label>Minutes</label></div>
+						<div class="time-segment"><span id="cd-seconds">00</span><label>Seconds</label></div>
 					</div>
-					<div class="countdown-label"><span id="countdown-label">until the Fat Hacks 2025 Tour</span></div>
+					<div class="countdown-label"><span id="countdown-label">until the Fat Hacks 2025 Tour:   13–16 Nov 2025</span></div>
 				</div>
+			</div>
+		</section>
+
+		<section id="players" class="section">
+			<div class="container">
+				<h2>Players & Rankings</h2>
+				<div id="players-list" class="cards list"></div>
 			</div>
 		</section>
 
@@ -48,7 +68,7 @@
 
 		<section id="golf" class="section">
 			<div class="container">
-				<h2>Golf Events</h2>
+				<h2>Scheduled Golf Events</h2>
 				<div id="golf-list" class="cards list"></div>
 			</div>
 		</section>
@@ -85,7 +105,7 @@
 		</button>
 		<div id="chat-panel" class="chat-panel" hidden>
 	<div class="chat-header">
-		<div class="chat-title">Assistant</div>
+		<div class="chat-title"><img id="chat-avatar" class="chat-avatar" alt="" hidden><span class="chat-name">Assistant</span></div>
 		<button id="chat-close" class="chat-close" type="button" title="Close">✕</button>
 	</div>
 	<div id="chat-log" class="chat-log" role="log"></div>

@@ -2,11 +2,11 @@
 const defaultData = {
 	site: {
 		title: "Fat Hacks 2025",
-		tourLabel: "until the Fat Hacks 2025 Tour",
-		tourDate: "2025-06-15T09:00:00Z",
+		tourLabel: "until the Fat Hacks 2025 Tour:   13–16 Nov 2025",
+		tourDate: "2025-11-13T00:00:00Z",
 		hero: {
 			headline: "Fat Hacks 2025",
-			subheadline: "Adventure. Golf. Good times."
+			subheadline: "Golf, Good Times, Booze & Shrooms"
 		}
 	},
 	flights: {
@@ -24,11 +24,11 @@ const defaultData = {
 		}
 	},
 	accommodation: {
-		name: "Hotel Example",
-		address: "123 Example St, City, Country",
+		name: "Burleigh Beach House",
+		address: "3 Albert St , Burleigh Heads",
 		checkIn: "2025-06-10",
 		checkOut: "2025-06-20",
-		mapUrl: ""
+		mapUrl: "https://www.google.com/maps/place/3+Albert+St,+Burleigh+Heads+QLD+4220/@-28.0925148,153.4537638,1064m/data=!3m2!1e3!4b1!4m6!3m5!1s0x6b91039684789c47:0x816dbddd617d2b51!8m2!3d-28.0925196!4d153.4563387!16s%2Fg%2F11c14pwjkm?entry=ttu&g_ep=EgoyMDI1MDgxOS4wIKXMDSoASAFQAw%3D%3D"
 	},
 	golfEvents: [
 		{ course: "Ocean Dunes", dateTime: "2025-06-12T08:00:00", address: "", notes: "Front nine warm-up" },
@@ -133,10 +133,11 @@ function renderGolfEvents(events) {
 
 function startCountdown(targetIso, label) {
 	const daysEl = document.getElementById('cd-days');
+	const hoursEl = document.getElementById('cd-hours');
 	const minsEl = document.getElementById('cd-minutes');
 	const secsEl = document.getElementById('cd-seconds');
 	const labelEl = document.getElementById('countdown-label');
-	labelEl.textContent = label || 'until the Fat Hacks 2025 Tour';
+	labelEl.textContent = label || 'until the Fat Hacks 2025 Tour:   13–16 Nov 2025';
 	const target = new Date(targetIso);
 	function tick() {
 		const now = new Date();
@@ -146,12 +147,13 @@ function startCountdown(targetIso, label) {
 		const minMs = 1000 * 60;
 		const days = Math.floor(diff / dayMs);
 		diff -= days * dayMs;
-		const hours = Math.floor(diff / hourMs); // computed but intentionally not displayed
+		const hours = Math.floor(diff / hourMs);
 		diff -= hours * hourMs;
 		const minutes = Math.floor(diff / minMs);
 		diff -= minutes * minMs;
 		const seconds = Math.floor(diff / 1000);
 		daysEl.textContent = String(days);
+		if (hoursEl) hoursEl.textContent = String(hours).padStart(2, '0');
 		minsEl.textContent = String(minutes).padStart(2, '0');
 		secsEl.textContent = String(seconds).padStart(2, '0');
 	}
@@ -172,6 +174,41 @@ function initUI(data) {
 	if (data.site?.hero?.subheadline) heroSub.textContent = data.site.hero.subheadline;
 
 	startCountdown(data.site?.tourDate, data.site?.tourLabel);
+
+	// Players
+	if (Array.isArray(data.players)) {
+		const root = document.getElementById('players-list');
+		if (root) {
+			root.innerHTML = '';
+			[...data.players]
+				.sort((a, b) => (a.ranking ?? 999) - (b.ranking ?? 999))
+				.forEach((p) => {
+					const card = document.createElement('div');
+					card.className = 'card';
+					const name = p.name || 'Player';
+					const rank = p.ranking != null ? Number(p.ranking) : '';
+					const hcap = p.handicap != null ? Number(p.handicap) : '';
+					const id = `player-${(name+rank+hcap).toString().replace(/\W+/g,'-')}`;
+					card.innerHTML = `
+						<div class="player-row">
+							<div class="player-summary"><span class="title" style="margin:0">${name}</span></div>
+							<div class="pill rank">Rank ${rank}</div>
+							<div class="pill hcap">+ Hcp ${hcap}</div>
+						</div>
+						<div class="player-details" id="${id}" hidden>${p.profile || ''}</div>
+						<div style="margin-top:8px"><button class="collapse-toggle" data-target="${id}">Profile</button></div>
+					`;
+					root.appendChild(card);
+				});
+
+			root.addEventListener('click', (e) => {
+				const btn = e.target.closest('button.collapse-toggle');
+				if (!btn) return;
+				const target = document.getElementById(btn.getAttribute('data-target'));
+				if (target) target.hidden = !target.hidden;
+			});
+		}
+	}
 	renderFlights(data.flights);
 	renderAccommodation(data.accommodation);
 	renderGolfEvents(data.golfEvents);

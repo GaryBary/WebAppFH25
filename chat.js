@@ -90,7 +90,18 @@ async function sendChat(apiBase, messages) {
 
 	// Ensure header shows persona name and panel starts closed
 	const titleEl = document.querySelector('.chat-title');
-	if (titleEl && bot?.persona?.name) titleEl.textContent = bot.persona.name;
+	if (titleEl) {
+		const nameSpan = titleEl.querySelector('.chat-name');
+		if (nameSpan && bot?.persona?.name) nameSpan.textContent = bot.persona.name;
+		const avatarEl = document.getElementById('chat-avatar');
+		const avatarUrl = bot?.persona?.avatar;
+		if (avatarEl && avatarUrl) {
+			avatarEl.hidden = true;
+			avatarEl.onload = () => { avatarEl.hidden = false; };
+			avatarEl.onerror = () => { avatarEl.hidden = true; };
+			avatarEl.src = avatarUrl;
+		}
+	}
 	panel.hidden = true;
 	toggle.setAttribute('aria-expanded', 'false');
 
