@@ -133,6 +133,37 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
     // If configured, use Stability AI for photorealistic image-to-image generation
     const provider = (process.env.IMAGE_PROVIDER || '').toLowerCase();
     const stabilityKey = process.env.STABILITY_API_KEY;
+    const openaiKey = process.env.OPENAI_API_KEY;
+    if (provider === 'openai' && openaiKey) {
+      try {
+        // Attempt an image edit using the uploaded photo as a base, asking the model to add the golfer.
+        const prompt = `Edit this photo to add ${golfer} next to the person on a golf putting green at golden hour, sharing beers, laughing, best pals, natural skin tones, highly realistic, 35mm lens, shallow depth of field, no text, no logos.`;
+        const mime = req.file.mimetype || 'image/png';
+        const blob = new Blob([req.file.buffer], { type: mime });
+        const form = new FormData();
+        form.append('model', 'gpt-image-1');
+        form.append('image', blob, 'input');
+        form.append('prompt', prompt);
+        form.append('size', '1024x768');
+        const r = await fetch('https://api.openai.com/v1/images/edits', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${openaiKey}` },
+          body: form
+        });
+        if (!r.ok) {
+          const detail = await r.text();
+          return res.status(502).json({ error: 'openai_error', detail });
+        }
+        const data = await r.json();
+        const b64 = data?.data?.[0]?.b64_json;
+        if (!b64) return res.status(502).json({ error: 'openai_no_image' });
+        const dataUrl = `data:image/png;base64,${b64}`;
+        return res.json({ imageUrl: dataUrl, provider: 'openai' });
+      } catch (e) {
+        console.error('openai_failed', e);
+        // fall through to other providers/fallback
+      }
+    }
     if (provider === 'stability' && stabilityKey) {
       try {
         const prompt = `A photorealistic candid photograph of the user and ${golfer} on a golf putting green at golden hour, sharing beers, laughing, best pals, natural skin tones, 35mm lens, shallow depth of field, no text, no logos.`;
