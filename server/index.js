@@ -137,10 +137,14 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
     
     if (stabilityKey) {
       try {
+        // Define the prompt for the image generation
+        const prompt = `Add ${golfer} standing next to this person on a golf putting green at golden hour, both holding beers and laughing together like best friends, photorealistic, natural lighting, no text, no logos`;
+        
         // Process image for Stability AI (they prefer JPEG format)
         const userImage = await Jimp.read(req.file.buffer);
         userImage.resize(1024, 1024);
         const jpegBuffer = await userImage.quality(90).getBufferAsync(Jimp.MIME_JPEG);
+        
         const form = new FormData();
         const blob = new Blob([jpegBuffer], { type: 'image/jpeg' });
         form.append('init_image', blob);
@@ -161,11 +165,13 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
           },
           body: form
         });
+        
         if (!r.ok) {
           const detail = await r.text();
           console.log('Stability AI error:', detail);
           throw new Error(`Stability AI error: ${detail}`);
         }
+        
         const data = await r.json();
         if (data.artifacts && data.artifacts[0] && data.artifacts[0].base64) {
           const dataUrl = `data:image/png;base64,${data.artifacts[0].base64}`;
@@ -173,26 +179,6 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
         } else {
           throw new Error('No image data in Stability AI response');
         }
-        const blob = new Blob([jpegBuffer], { type: 'image/jpeg' });
-        form.append('image', blob, 'input.jpg');
-        form.append('prompt', prompt);
-        form.append('output_format', 'png');
-        form.append('strength', '0.6'); // Higher strength for more transformation
-
-        const r = await fetch('https://api.stability.ai/v2beta/stable-image/image-to-image', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${stabilityKey}`, Accept: 'image/*' },
-          body: form
-        });
-        if (!r.ok) {
-          const detail = await r.text();
-          console.log('Stability AI error:', detail);
-          throw new Error(`Stability AI error: ${detail}`);
-        }
-        const arrayBuf = await r.arrayBuffer();
-        const outBuf = Buffer.from(arrayBuf);
-        const dataUrl = `data:image/png;base64,${outBuf.toString('base64')}`;
-        return res.json({ imageUrl: dataUrl, provider: 'stability' });
       } catch (e) {
         console.error('stability_failed', e);
         // fall through to OpenAI or fallback
