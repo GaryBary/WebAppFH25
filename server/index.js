@@ -148,6 +148,12 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
         userImage.resize(1024, 1024);
         const pngBuffer = await userImage.getBufferAsync(Jimp.MIME_PNG);
         
+        // Check if image size is reasonable (under 4MB)
+        if (pngBuffer.length > 4 * 1024 * 1024) {
+          console.log('Image too large:', pngBuffer.length);
+          throw new Error('Image too large for OpenAI processing');
+        }
+        
         // Use DALL-E 2 image editing to add the famous golfer to the uploaded photo
         const prompt = `Add ${golfer} standing next to this person on a golf putting green at golden hour, both holding beers and laughing together like best friends, photorealistic, natural lighting, no text, no logos`;
         
@@ -169,14 +175,15 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
         if (!r.ok) {
           const detail = await r.text();
           console.log('OpenAI edits error:', detail);
-          return res.status(502).json({ error: 'openai_error', detail });
+          // If OpenAI fails, we'll fall through to Stability AI or fallback
+          throw new Error(`OpenAI server error: ${detail}`);
         }
         const data = await r.json();
         console.log('OpenAI edits response:', JSON.stringify(data, null, 2));
         const b64 = data?.data?.[0]?.b64_json;
         if (!b64) {
           console.log('No b64_json found in edits response');
-          return res.status(502).json({ error: 'openai_no_image', debug: data });
+          throw new Error('No image data in OpenAI response');
         }
         const dataUrl = `data:image/png;base64,${b64}`;
         return res.json({ imageUrl: dataUrl, provider: 'openai' });
@@ -187,14 +194,18 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
     }
     if (stabilityKey) {
       try {
-        const prompt = `A photorealistic candid photograph of the user and ${golfer} on a golf putting green at golden hour, sharing beers, laughing, best pals, natural skin tones, 35mm lens, shallow depth of field, no text, no logos.`;
+        // Process image for Stability AI (they prefer JPEG format)
+        const userImage = await Jimp.read(req.file.buffer);
+        userImage.resize(1024, 1024);
+        const jpegBuffer = await userImage.quality(90).getBufferAsync(Jimp.MIME_JPEG);
+        
+        const prompt = `Transform this photo to show the person with ${golfer} on a golf putting green at golden hour, both holding beers and laughing together like best friends, photorealistic, natural skin tones, 35mm lens, shallow depth of field, no text, no logos.`;
         const form = new FormData();
-        const mime = req.file.mimetype || 'image/jpeg';
-        const blob = new Blob([req.file.buffer], { type: mime });
-        form.append('image', blob, 'input');
+        const blob = new Blob([jpegBuffer], { type: 'image/jpeg' });
+        form.append('image', blob, 'input.jpg');
         form.append('prompt', prompt);
         form.append('output_format', 'png');
-        form.append('strength', '0.45');
+        form.append('strength', '0.6'); // Higher strength for more transformation
 
         const r = await fetch('https://api.stability.ai/v2beta/stable-image/image-to-image', {
           method: 'POST',
@@ -203,7 +214,8 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
         });
         if (!r.ok) {
           const detail = await r.text();
-          return res.status(502).json({ error: 'stability_error', detail });
+          console.log('Stability AI error:', detail);
+          throw new Error(`Stability AI error: ${detail}`);
         }
         const arrayBuf = await r.arrayBuffer();
         const outBuf = Buffer.from(arrayBuf);
