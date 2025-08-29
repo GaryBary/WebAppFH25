@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import fetch from 'node-fetch';
+import fetch, { FormData, Blob } from 'node-fetch';
 import pg from 'pg';
 import multer from 'multer';
 import Jimp from 'jimp';
@@ -130,21 +130,23 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
       return res.status(400).json({ error: 'invalid_golfer' });
     }
 
-    // If configured, use Stability AI for photorealistic image-to-image generation
-    const provider = (process.env.IMAGE_PROVIDER || '').toLowerCase();
+    // Prefer OpenAI automatically when key is present; otherwise try Stability; then fallback
     const stabilityKey = process.env.STABILITY_API_KEY;
     const openaiKey = process.env.OPENAI_API_KEY;
-    if (provider === 'openai' && openaiKey) {
+    if (openaiKey) {
       try {
         // Attempt an image edit using the uploaded photo as a base, asking the model to add the golfer.
         const prompt = `Edit this photo to add ${golfer} next to the person on a golf putting green at golden hour, sharing beers, laughing, best pals, natural skin tones, highly realistic, 35mm lens, shallow depth of field, no text, no logos.`;
         const mime = req.file.mimetype || 'image/png';
+        // Use a valid OpenAI size - options are: '1024x1024', '1024x1536', '1536x1024', or 'auto'
+        const size = '1024x1024';
         const blob = new Blob([req.file.buffer], { type: mime });
         const form = new FormData();
-        form.append('model', 'gpt-image-1');
-        form.append('image', blob, 'input');
+        form.append('model', 'dall-e-2');
+        // OpenAI edits API expects images under 'image'
+        form.append('image', blob, 'input.png');
         form.append('prompt', prompt);
-        form.append('size', '1024x768');
+        form.append('size', size);
         const r = await fetch('https://api.openai.com/v1/images/edits', {
           method: 'POST',
           headers: { Authorization: `Bearer ${openaiKey}` },
@@ -164,7 +166,7 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
         // fall through to other providers/fallback
       }
     }
-    if (provider === 'stability' && stabilityKey) {
+    if (stabilityKey) {
       try {
         const prompt = `A photorealistic candid photograph of the user and ${golfer} on a golf putting green at golden hour, sharing beers, laughing, best pals, natural skin tones, 35mm lens, shallow depth of field, no text, no logos.`;
         const form = new FormData();
@@ -214,7 +216,10 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
     bg.print(fontSmall, Math.floor(width * 0.52), Math.floor(height * 0.22) + 80, 'On the green • beers • good times');
     const out = await bg.getBufferAsync(Jimp.MIME_PNG);
     const dataUrl = `data:image/png;base64,${out.toString('base64')}`;
-    return res.json({ imageUrl: dataUrl, provider: 'fallback' });
+    const reason = !process.env.OPENAI_API_KEY
+      ? 'missing_openai_key'
+      : 'upstream_failed_or_disabled';
+    return res.json({ imageUrl: dataUrl, provider: 'fallback', reason });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ error: 'internal' });
