@@ -133,6 +133,8 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
     // Prefer Stability AI first (temporary bypass of OpenAI); fallback to OpenAI if needed
     const stabilityKey = process.env.STABILITY_API_KEY;
     const openaiKey = process.env.OPENAI_API_KEY;
+    const bypassOpenAI = process.env.BYPASS_OPENAI === 'true'; // Temporary bypass flag
+    
     if (stabilityKey) {
       try {
         // Process image for Stability AI (they prefer JPEG format)
@@ -167,7 +169,7 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
         // fall through to OpenAI or fallback
       }
     }
-    if (openaiKey) {
+    if (openaiKey && !bypassOpenAI) {
       try {
         // Convert uploaded image to PNG format and ensure proper size for editing
         const userImage = await Jimp.read(req.file.buffer);
@@ -247,9 +249,9 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
     bg.print(fontSmall, Math.floor(width * 0.52), Math.floor(height * 0.22) + 80, 'On the green • beers • good times');
     const out = await bg.getBufferAsync(Jimp.MIME_PNG);
     const dataUrl = `data:image/png;base64,${out.toString('base64')}`;
-    const reason = !process.env.STABILITY_API_KEY && !process.env.OPENAI_API_KEY
-      ? 'missing_api_keys'
-      : 'upstream_failed_or_disabled';
+    const reason = bypassOpenAI 
+      ? (!process.env.STABILITY_API_KEY ? 'openai_bypassed_missing_stability_key' : 'stability_failed_openai_bypassed')
+      : (!process.env.STABILITY_API_KEY && !process.env.OPENAI_API_KEY ? 'missing_api_keys' : 'upstream_failed_or_disabled');
     return res.json({ imageUrl: dataUrl, provider: 'fallback', reason });
   } catch (e) {
     console.error(e);
