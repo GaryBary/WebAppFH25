@@ -141,9 +141,38 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
         const userImage = await Jimp.read(req.file.buffer);
         userImage.resize(1024, 1024);
         const jpegBuffer = await userImage.quality(90).getBufferAsync(Jimp.MIME_JPEG);
-        
-        const prompt = `Transform this photo to show the person with ${golfer} on a golf putting green at golden hour, both holding beers and laughing together like best friends, photorealistic, natural skin tones, 35mm lens, shallow depth of field, no text, no logos.`;
         const form = new FormData();
+        const blob = new Blob([jpegBuffer], { type: 'image/jpeg' });
+        form.append('init_image', blob);
+        form.append('init_image_mode', 'IMAGE_STRENGTH');
+        form.append('image_strength', '0.35');
+        form.append('steps', '40');
+        form.append('seed', '0');
+        form.append('cfg_scale', '5');
+        form.append('samples', '1');
+        form.append('text_prompts[0][text]', prompt);
+        form.append('text_prompts[0][weight]', '1');
+
+        const r = await fetch('https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/image-to-image', {
+          method: 'POST',
+          headers: { 
+            'Authorization': `Bearer ${stabilityKey}`,
+            'Accept': 'application/json'
+          },
+          body: form
+        });
+        if (!r.ok) {
+          const detail = await r.text();
+          console.log('Stability AI error:', detail);
+          throw new Error(`Stability AI error: ${detail}`);
+        }
+        const data = await r.json();
+        if (data.artifacts && data.artifacts[0] && data.artifacts[0].base64) {
+          const dataUrl = `data:image/png;base64,${data.artifacts[0].base64}`;
+          return res.json({ imageUrl: dataUrl, provider: 'stability' });
+        } else {
+          throw new Error('No image data in Stability AI response');
+        }
         const blob = new Blob([jpegBuffer], { type: 'image/jpeg' });
         form.append('image', blob, 'input.jpg');
         form.append('prompt', prompt);
