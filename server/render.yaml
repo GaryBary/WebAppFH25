@@ -8,6 +8,8 @@ services:
     startCommand: "npm start"
     runtime: node
     envVars:
+      - key: STABILITY_API_KEY
+        sync: false
       - key: OPENAI_API_KEY
         sync: false
       - key: MODEL

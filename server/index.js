@@ -130,9 +130,43 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
       return res.status(400).json({ error: 'invalid_golfer' });
     }
 
-    // Prefer OpenAI automatically when key is present; otherwise try Stability; then fallback
+    // Prefer Stability AI first (temporary bypass of OpenAI); fallback to OpenAI if needed
     const stabilityKey = process.env.STABILITY_API_KEY;
     const openaiKey = process.env.OPENAI_API_KEY;
+    if (stabilityKey) {
+      try {
+        // Process image for Stability AI (they prefer JPEG format)
+        const userImage = await Jimp.read(req.file.buffer);
+        userImage.resize(1024, 1024);
+        const jpegBuffer = await userImage.quality(90).getBufferAsync(Jimp.MIME_JPEG);
+        
+        const prompt = `Transform this photo to show the person with ${golfer} on a golf putting green at golden hour, both holding beers and laughing together like best friends, photorealistic, natural skin tones, 35mm lens, shallow depth of field, no text, no logos.`;
+        const form = new FormData();
+        const blob = new Blob([jpegBuffer], { type: 'image/jpeg' });
+        form.append('image', blob, 'input.jpg');
+        form.append('prompt', prompt);
+        form.append('output_format', 'png');
+        form.append('strength', '0.6'); // Higher strength for more transformation
+
+        const r = await fetch('https://api.stability.ai/v2beta/stable-image/image-to-image', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${stabilityKey}`, Accept: 'image/*' },
+          body: form
+        });
+        if (!r.ok) {
+          const detail = await r.text();
+          console.log('Stability AI error:', detail);
+          throw new Error(`Stability AI error: ${detail}`);
+        }
+        const arrayBuf = await r.arrayBuffer();
+        const outBuf = Buffer.from(arrayBuf);
+        const dataUrl = `data:image/png;base64,${outBuf.toString('base64')}`;
+        return res.json({ imageUrl: dataUrl, provider: 'stability' });
+      } catch (e) {
+        console.error('stability_failed', e);
+        // fall through to OpenAI or fallback
+      }
+    }
     if (openaiKey) {
       try {
         // Convert uploaded image to PNG format and ensure proper size for editing
@@ -175,7 +209,7 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
         if (!r.ok) {
           const detail = await r.text();
           console.log('OpenAI edits error:', detail);
-          // If OpenAI fails, we'll fall through to Stability AI or fallback
+          // If OpenAI fails, we'll fall through to fallback
           throw new Error(`OpenAI server error: ${detail}`);
         }
         const data = await r.json();
@@ -189,41 +223,7 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
         return res.json({ imageUrl: dataUrl, provider: 'openai' });
       } catch (e) {
         console.error('openai_failed', e);
-        // fall through to other providers/fallback
-      }
-    }
-    if (stabilityKey) {
-      try {
-        // Process image for Stability AI (they prefer JPEG format)
-        const userImage = await Jimp.read(req.file.buffer);
-        userImage.resize(1024, 1024);
-        const jpegBuffer = await userImage.quality(90).getBufferAsync(Jimp.MIME_JPEG);
-        
-        const prompt = `Transform this photo to show the person with ${golfer} on a golf putting green at golden hour, both holding beers and laughing together like best friends, photorealistic, natural skin tones, 35mm lens, shallow depth of field, no text, no logos.`;
-        const form = new FormData();
-        const blob = new Blob([jpegBuffer], { type: 'image/jpeg' });
-        form.append('image', blob, 'input.jpg');
-        form.append('prompt', prompt);
-        form.append('output_format', 'png');
-        form.append('strength', '0.6'); // Higher strength for more transformation
-
-        const r = await fetch('https://api.stability.ai/v2beta/stable-image/image-to-image', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${stabilityKey}`, Accept: 'image/*' },
-          body: form
-        });
-        if (!r.ok) {
-          const detail = await r.text();
-          console.log('Stability AI error:', detail);
-          throw new Error(`Stability AI error: ${detail}`);
-        }
-        const arrayBuf = await r.arrayBuffer();
-        const outBuf = Buffer.from(arrayBuf);
-        const dataUrl = `data:image/png;base64,${outBuf.toString('base64')}`;
-        return res.json({ imageUrl: dataUrl, provider: 'stability' });
-      } catch (e) {
-        console.error('stability_failed', e);
-        // fall through to local composite
+        // fall through to fallback
       }
     }
 
@@ -247,8 +247,8 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
     bg.print(fontSmall, Math.floor(width * 0.52), Math.floor(height * 0.22) + 80, 'On the green • beers • good times');
     const out = await bg.getBufferAsync(Jimp.MIME_PNG);
     const dataUrl = `data:image/png;base64,${out.toString('base64')}`;
-    const reason = !process.env.OPENAI_API_KEY
-      ? 'missing_openai_key'
+    const reason = !process.env.STABILITY_API_KEY && !process.env.OPENAI_API_KEY
+      ? 'missing_api_keys'
       : 'upstream_failed_or_disabled';
     return res.json({ imageUrl: dataUrl, provider: 'fallback', reason });
   } catch (e) {

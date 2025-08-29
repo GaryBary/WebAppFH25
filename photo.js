@@ -72,13 +72,15 @@
 				throw new Error('Invalid JSON: ' + txt.slice(0,200));
 			});
 			const url = data?.imageUrl;
+			const provider = data?.provider || 'unknown';
+			const reason = data?.reason;
 			if (url) {
 				const img = document.createElement('img');
 				img.src = url; img.alt = `You with ${golfer}`; img.style.maxWidth = '100%'; img.style.borderRadius = '12px';
 				resultEl.appendChild(img);
-				statusEl.textContent = 'Done!';
+				statusEl.textContent = `Done! Source: ${provider}${reason ? ` (${reason})` : ''}`;
 			} else {
-				statusEl.textContent = 'No image returned.';
+				statusEl.textContent = `No image returned (provider: ${provider}).`;
 			}
 		} catch (err) {
 			console.error(err);

@@ -37,7 +37,7 @@
     { "title": "Arvo sess and shrooms", "notes": "Chill sessions daily." }
   ],
   "photoGen": {
-    "apiBase": "https://golfphoto.onrender.com",
+    "apiBase": "https://webappfh25.onrender.com",
     "topGolfers": ["Scottie Scheffler","Rory McIlroy","Xander Schauffele","Russell Henley","Collin Morikawa"],
     "altGolfers": ["Greg Norman","Tiger Woods","John Daly","Phil Mickelson","Bubba Watson","Bryson DeChambeau"]
   }
