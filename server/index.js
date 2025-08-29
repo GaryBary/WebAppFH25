@@ -135,26 +135,42 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
     const openaiKey = process.env.OPENAI_API_KEY;
     if (openaiKey) {
       try {
-        // Attempt an image edit using the uploaded photo as a base, asking the model to add the golfer.
-        const prompt = `Edit this photo to add ${golfer} next to the person on a golf putting green at golden hour, sharing beers, laughing, best pals, natural skin tones, highly realistic, 35mm lens, shallow depth of field, no text, no logos.`;
-        const mime = req.file.mimetype || 'image/png';
-        // Use a valid OpenAI size - options are: '1024x1024', '1024x1536', '1536x1024', or 'auto'
-        const size = '1024x1024';
-        const blob = new Blob([req.file.buffer], { type: mime });
+        // Convert uploaded image to PNG format and resize if needed
+        const userImage = await Jimp.read(req.file.buffer);
+        // Resize to ensure it meets OpenAI requirements (max 4MB, square format preferred)
+        userImage.resize(1024, 1024);
+        const pngBuffer = await userImage.getBufferAsync(Jimp.MIME_PNG);
+        
+        // Use DALL-E 3 image generation with a descriptive prompt instead of editing
+        // This is more reliable than the edits endpoint
+        const prompt = `A photorealistic image of two people on a beautiful golf putting green at golden hour: one person is the uploaded photo subject, and the other is ${golfer}, a professional golfer. They are standing together sharing beers and laughing like best friends. Natural skin tones, 35mm lens photography style, shallow depth of field, warm golden lighting, no text, no logos. Realistic casual golf attire.`;
+        
         const form = new FormData();
-        form.append('model', 'dall-e-2');
-        // OpenAI edits API expects images under 'image'
-        form.append('image', blob, 'input.png');
+        form.append('model', 'dall-e-3');
         form.append('prompt', prompt);
-        form.append('size', size);
+        form.append('size', '1024x1024');
+        form.append('quality', 'standard');
         form.append('response_format', 'b64_json');
-        const r = await fetch('https://api.openai.com/v1/images/edits', {
+        
+        const r = await fetch('https://api.openai.com/v1/images/generations', {
           method: 'POST',
-          headers: { Authorization: `Bearer ${openaiKey}` },
-          body: form
+          headers: { 
+            'Authorization': `Bearer ${openaiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'dall-e-3',
+            prompt: prompt,
+            size: '1024x1024',
+            quality: 'standard',
+            response_format: 'b64_json',
+            n: 1
+          })
         });
+        
         if (!r.ok) {
           const detail = await r.text();
+          console.log('OpenAI error:', detail);
           return res.status(502).json({ error: 'openai_error', detail });
         }
         const data = await r.json();
