@@ -147,6 +147,7 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
         form.append('image', blob, 'input.png');
         form.append('prompt', prompt);
         form.append('size', size);
+        form.append('response_format', 'b64_json');
         const r = await fetch('https://api.openai.com/v1/images/edits', {
           method: 'POST',
           headers: { Authorization: `Bearer ${openaiKey}` },
@@ -157,8 +158,12 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
           return res.status(502).json({ error: 'openai_error', detail });
         }
         const data = await r.json();
+        console.log('OpenAI response data:', JSON.stringify(data, null, 2));
         const b64 = data?.data?.[0]?.b64_json;
-        if (!b64) return res.status(502).json({ error: 'openai_no_image' });
+        if (!b64) {
+          console.log('No b64_json found in response');
+          return res.status(502).json({ error: 'openai_no_image', debug: data });
+        }
         const dataUrl = `data:image/png;base64,${b64}`;
         return res.json({ imageUrl: dataUrl, provider: 'openai' });
       } catch (e) {
