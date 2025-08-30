@@ -161,27 +161,20 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
         const form = new FormData();
         const initBlob = new Blob([jpegBuffer], { type: 'image/jpeg' });
         const maskBlob = new Blob([maskBuffer], { type: 'image/png' });
-        form.append('init_image', initBlob);
-        // Use mask mode to add the golfer on the right only
-        form.append('init_image_mode', 'MASK');
-        form.append('mask_image', maskBlob);
-        form.append('mask_source', 'MASK_IMAGE_WHITE');
-        // Allow enough freedom to synthesize the right side while preserving the left
-        form.append('image_strength', '0.45');
+        form.append('image', initBlob);
+        form.append('mask', maskBlob);
+        form.append('prompt', positivePrompt);
+        form.append('negative_prompt', negativePrompt);
+        form.append('strength', '0.45');
         form.append('steps', '50');
         form.append('seed', '0');
         form.append('cfg_scale', '6');
-        form.append('samples', '1');
-        form.append('text_prompts[0][text]', positivePrompt);
-        form.append('text_prompts[0][weight]', '1');
-        form.append('text_prompts[1][text]', negativePrompt);
-        form.append('text_prompts[1][weight]', '-1');
 
-        const r = await fetch('https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/image-to-image', {
+        const r = await fetch('https://api.stability.ai/v2beta/stable-image/generate/image-to-image', {
           method: 'POST',
           headers: { 
             'Authorization': `Bearer ${stabilityKey}`,
-            'Accept': 'application/json'
+            'Accept': 'image/*'
           },
           body: form
         });
@@ -192,13 +185,10 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
           throw new Error(`Stability AI error: ${detail}`);
         }
         
-        const data = await r.json();
-        if (data.artifacts && data.artifacts[0] && data.artifacts[0].base64) {
-          const dataUrl = `data:image/png;base64,${data.artifacts[0].base64}`;
-          return res.json({ imageUrl: dataUrl, provider: 'stability' });
-        } else {
-          throw new Error('No image data in Stability AI response');
-        }
+        const imageBuffer = await r.arrayBuffer();
+        const base64 = Buffer.from(imageBuffer).toString('base64');
+        const dataUrl = `data:image/png;base64,${base64}`;
+        return res.json({ imageUrl: dataUrl, provider: 'stability' });
       } catch (e) {
         console.error('stability_failed', e);
         // fall through to OpenAI or fallback
