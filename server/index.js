@@ -146,13 +146,16 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
         userImage.resize(1024, 1024);
         const jpegBuffer = await userImage.quality(92).getBufferAsync(Jimp.MIME_JPEG);
 
-        // Build a mask: left side opaque (preserve), right side transparent (allow generation)
+        // Build a mask for Stability inpainting:
+        // Use 'MASK_IMAGE_WHITE' so WHITE = area to be edited, BLACK = preserved.
+        // We want to preserve the left and edit the right.
         const width = 1024;
         const height = 1024;
-        const mask = await new Jimp(width, height, 0x00ffffff); // fully transparent canvas
-        const leftWidth = Math.floor(width * 0.54); // preserve a bit over half for the user
-        const leftOpaque = await new Jimp(leftWidth, height, 0xffffffff); // opaque white
-        mask.composite(leftOpaque, 0, 0);
+        const mask = await new Jimp(width, height, 0x000000ff); // solid black (preserve by default)
+        const rightX = Math.floor(width * 0.54);
+        const rightWidth = width - rightX;
+        const rightWhite = await new Jimp(rightWidth, height, 0xffffffff); // white = edit region
+        mask.composite(rightWhite, rightX, 0);
         const maskBuffer = await mask.getBufferAsync(Jimp.MIME_PNG);
 
         const form = new FormData();
@@ -162,8 +165,9 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
         // Use mask mode to add the golfer on the right only
         form.append('init_image_mode', 'MASK');
         form.append('mask_image', maskBlob);
+        form.append('mask_source', 'MASK_IMAGE_WHITE');
         // Allow enough freedom to synthesize the right side while preserving the left
-        form.append('image_strength', '0.65');
+        form.append('image_strength', '0.45');
         form.append('steps', '50');
         form.append('seed', '0');
         form.append('cfg_scale', '6');
