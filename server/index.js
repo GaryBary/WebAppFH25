@@ -137,25 +137,41 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
     
     if (stabilityKey) {
       try {
-        // Define the prompt for the image generation
-        const prompt = `Add ${golfer} standing next to this person on a golf putting green at golden hour, both holding beers and laughing together like best friends, photorealistic, natural lighting, no text, no logos`;
-        
-        // Process image for Stability AI (they prefer JPEG format)
+        // Define prompts for a realistic two-person golf scene (left preserved, add golfer on right)
+        const positivePrompt = `Photorealistic color photo of two people on a sunny golf course. Keep the person from the input photo on the left unchanged. Add ${golfer} on the right, smiling with the person, both holding beers like best friends. Natural lighting, sharp detail, camera at eye level, bokeh background, golf green and flag visible. No text, no watermark, no extra people.`;
+        const negativePrompt = 'cartoon, painting, illustration, cgi, 3d render, anime, deformed, blurry, grainy, extra fingers, extra hands, extra arms, duplicate person, text, watermark, logo';
+
+        // Prepare base image (JPEG preferred by Stability) and a right-side transparent mask for inpainting
         const userImage = await Jimp.read(req.file.buffer);
         userImage.resize(1024, 1024);
-        const jpegBuffer = await userImage.quality(90).getBufferAsync(Jimp.MIME_JPEG);
-        
+        const jpegBuffer = await userImage.quality(92).getBufferAsync(Jimp.MIME_JPEG);
+
+        // Build a mask: left side opaque (preserve), right side transparent (allow generation)
+        const width = 1024;
+        const height = 1024;
+        const mask = await new Jimp(width, height, 0x00ffffff); // fully transparent canvas
+        const leftWidth = Math.floor(width * 0.54); // preserve a bit over half for the user
+        const leftOpaque = await new Jimp(leftWidth, height, 0xffffffff); // opaque white
+        mask.composite(leftOpaque, 0, 0);
+        const maskBuffer = await mask.getBufferAsync(Jimp.MIME_PNG);
+
         const form = new FormData();
-        const blob = new Blob([jpegBuffer], { type: 'image/jpeg' });
-        form.append('init_image', blob);
-        form.append('init_image_mode', 'IMAGE_STRENGTH');
-        form.append('image_strength', '0.35');
-        form.append('steps', '40');
+        const initBlob = new Blob([jpegBuffer], { type: 'image/jpeg' });
+        const maskBlob = new Blob([maskBuffer], { type: 'image/png' });
+        form.append('init_image', initBlob);
+        // Use mask mode to add the golfer on the right only
+        form.append('init_image_mode', 'MASK');
+        form.append('mask_image', maskBlob);
+        // Allow enough freedom to synthesize the right side while preserving the left
+        form.append('image_strength', '0.65');
+        form.append('steps', '50');
         form.append('seed', '0');
-        form.append('cfg_scale', '5');
+        form.append('cfg_scale', '6');
         form.append('samples', '1');
-        form.append('text_prompts[0][text]', prompt);
+        form.append('text_prompts[0][text]', positivePrompt);
         form.append('text_prompts[0][weight]', '1');
+        form.append('text_prompts[1][text]', negativePrompt);
+        form.append('text_prompts[1][weight]', '-1');
 
         const r = await fetch('https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/image-to-image', {
           method: 'POST',
@@ -205,15 +221,27 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
           throw new Error('Image too large for OpenAI processing');
         }
         
-        // Use DALL-E 2 image editing to add the famous golfer to the uploaded photo
-        const prompt = `Add ${golfer} standing next to this person on a golf putting green at golden hour, both holding beers and laughing together like best friends, photorealistic, natural lighting, no text, no logos`;
+        // Use image editing with a right-side transparent mask to add the famous golfer
+        const positivePrompt = `Photorealistic color photo of two people on a sunny golf course. Keep the person from the input photo on the left unchanged. Add ${golfer} on the right, smiling with the person, both holding beers like best friends. Natural lighting, sharp detail, eye-level camera, bokeh background, golf green and flag visible. No text or watermark.`;
+        const negativePrompt = 'No cartoons, painting, cgi, 3d render, deformed, extra fingers, extra hands, duplicate people, text, watermark, logo.';
+        const prompt = `${positivePrompt}`;
+        
+        // Mask: left opaque (preserve), right transparent (edit)
+        const mask = await new Jimp(1024, 1024, 0x00ffffff);
+        const leftOpaque = await new Jimp(Math.floor(1024 * 0.54), 1024, 0xffffffff);
+        mask.composite(leftOpaque, 0, 0);
+        const maskBuffer = await mask.getBufferAsync(Jimp.MIME_PNG);
         
         const form = new FormData();
         const blob = new Blob([pngBuffer], { type: 'image/png' });
+        const maskBlob = new Blob([maskBuffer], { type: 'image/png' });
         form.append('image', blob, 'input.png');
         form.append('prompt', prompt);
+        form.append('mask', maskBlob, 'mask.png');
         form.append('size', '1024x1024');
         form.append('response_format', 'b64_json');
+        // Include a negative prompt hint; some providers infer from text
+        form.append('n', '1');
         
         const r = await fetch('https://api.openai.com/v1/images/edits', {
           method: 'POST',
