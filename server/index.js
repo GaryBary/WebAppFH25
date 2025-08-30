@@ -3,8 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import fetch, { FormData, Blob } from 'node-fetch';
 import pg from 'pg';
-import multer from 'multer';
-import Jimp from 'jimp';
+
 
 const { Pool } = pg;
 const app = express();
@@ -106,97 +105,7 @@ app.get('/health', (req, res) => {
   res.json({ ok: true, uptime: process.uptime() });
 });
 
-// --- Fan Photo Generator (MVP compositing) ---
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 6 * 1024 * 1024 } });
 
-const TOP_GOLFERS = [
-  'Scottie Scheffler','Rory McIlroy','Xander Schauffele','Russell Henley','Collin Morikawa'
-];
-const ALT_GOLFERS = [
-  'Greg Norman','Tiger Woods','John Daly','Phil Mickelson','Bubba Watson','Bryson DeChambeau'
-];
-
-function isAllowedGolfer(name) {
-  return TOP_GOLFERS.includes(name) || ALT_GOLFERS.includes(name);
-}
-
-app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
-  try {
-    const golfer = String(req.body?.golfer || '').trim();
-    if (!req.file || !req.file.buffer) {
-      return res.status(400).json({ error: 'image_required' });
-    }
-    if (!isAllowedGolfer(golfer)) {
-      return res.status(400).json({ error: 'invalid_golfer' });
-    }
-    // Use Stability AI only
-    const stabilityKey = process.env.STABILITY_API_KEY;
-    if (stabilityKey) {
-      try {
-        // Define prompts for a realistic two-person golf scene (left preserved, add golfer on right)
-        const positivePrompt = `Photorealistic color photo of two people on a sunny golf course. Keep the person from the input photo on the left unchanged. Add ${golfer} on the right, smiling with the person, both holding beers like best friends. Natural lighting, sharp detail, camera at eye level, bokeh background, golf green and flag visible. No text, no watermark, no extra people.`;
-        const negativePrompt = 'cartoon, painting, illustration, cgi, 3d render, anime, deformed, blurry, grainy, extra fingers, extra hands, extra arms, duplicate person, text, watermark, logo';
-
-        // Prepare base image (JPEG preferred by Stability) and a right-side transparent mask for inpainting
-        const userImage = await Jimp.read(req.file.buffer);
-        userImage.resize(1024, 1024);
-        const jpegBuffer = await userImage.quality(92).getBufferAsync(Jimp.MIME_JPEG);
-
-        // Build a mask for Stability inpainting:
-        // Use 'MASK_IMAGE_WHITE' so WHITE = area to be edited, BLACK = preserved.
-        // We want to preserve the left and edit the right.
-        const width = 1024;
-        const height = 1024;
-        const mask = await new Jimp(width, height, 0x000000ff); // solid black (preserve by default)
-        const rightX = Math.floor(width * 0.54);
-        const rightWidth = width - rightX;
-        const rightWhite = await new Jimp(rightWidth, height, 0xffffffff); // white = edit region
-        mask.composite(rightWhite, rightX, 0);
-        const maskBuffer = await mask.getBufferAsync(Jimp.MIME_PNG);
-
-        const form = new FormData();
-        const initBlob = new Blob([jpegBuffer], { type: 'image/jpeg' });
-        const maskBlob = new Blob([maskBuffer], { type: 'image/png' });
-        form.append('image', initBlob);
-        form.append('mask', maskBlob);
-        form.append('prompt', positivePrompt);
-        form.append('negative_prompt', negativePrompt);
-        form.append('strength', '0.45');
-        form.append('steps', '50');
-        form.append('seed', '0');
-        form.append('cfg_scale', '6');
-
-        const r = await fetch('https://api.stability.ai/v2beta/stable-image/generate/image-to-image', {
-          method: 'POST',
-          headers: { 
-            'Authorization': `Bearer ${stabilityKey}`,
-            'Accept': 'image/*'
-          },
-          body: form
-        });
-        
-        if (!r.ok) {
-          const detail = await r.text();
-          console.log('Stability AI error:', detail);
-          throw new Error(`Stability AI error: ${detail}`);
-        }
-        
-        const imageBuffer = await r.arrayBuffer();
-        const base64 = Buffer.from(imageBuffer).toString('base64');
-        const dataUrl = `data:image/png;base64,${base64}`;
-        return res.json({ imageUrl: dataUrl, provider: 'stability' });
-      } catch (e) {
-        console.error('stability_failed', e);
-        return res.status(502).json({ error: 'stability_failed' });
-      }
-    }
-    // If we get here, Stability is not configured
-    return res.status(500).json({ error: 'stability_not_configured' });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({ error: 'internal' });
-  }
-});
 
 // Existing chat proxy
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
