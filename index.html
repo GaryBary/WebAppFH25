@@ -84,7 +84,7 @@
 			<div class="container">
 				<h2>Fan Photo Generator</h2>
 				<div class="card">
-					<p class="meta">Upload your photo and pick a golfer. We’ll generate a fun, realistic shot of you both on the green.</p>
+					<p class="meta">Upload your photo and pick a famous golfer. What would it look like if you and [golfer] had a baby?</p>
 					<div class="row" style="gap:12px; align-items:flex-start; flex-wrap:wrap;">
 						<input id="photo-file" type="file" accept="image/*" capture="environment">
 						<select id="photo-golfer"></select>
@@ -100,6 +100,7 @@
 	<div class="container">
 		<h2>Message Board</h2>
 		<div class="card">
+		<div class="card">
 			<form id="msg-form" class="msg-form" autocomplete="off">
 				<select id="msg-author" required>
 					<option value="" disabled selected>Select your name</option>
@@ -109,6 +110,7 @@
 				<input id="msg-text" class="msg-input" type="text" maxlength="500" placeholder="Write a message…" required />
 				<button class="msg-send" type="submit">Post</button>
 			</form>
+			<p class="meta" style="margin-top:8px">Send a message to all your fellow Fat Hacks.</p>
 		</div>
 		<div id="msg-list" class="cards list"></div>
 	</div>

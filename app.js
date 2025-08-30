@@ -117,11 +117,10 @@ function renderAccommodation(accommodation) {
 	root.innerHTML = '';
 	const card = document.createElement('div');
 	card.className = 'card';
-	const when = [accommodation?.checkIn, accommodation?.checkOut].filter(Boolean).join(' → ');
 	card.innerHTML = `
 		<div class="kicker">Where we're staying</div>
 		<div class="title">${accommodation?.name || ''}</div>
-		<div class="meta">${accommodation?.address || ''}${when ? ` · ${when}` : ''}</div>
+		<div class="meta">${accommodation?.address || ''}</div>
 		${accommodation?.mapUrl ? `<div style="margin-top:8px"><a class="link" target="_blank" rel="noopener" href="${accommodation.mapUrl}">View on Map</a></div>` : ''}
 	`;
 	root.appendChild(card);

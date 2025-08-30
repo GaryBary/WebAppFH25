@@ -7,14 +7,14 @@
   },
   "flights": {
     "departure": { "airportFrom": "Melbourne", "airportTo": "Goldcoast", "flightNumber": "V987", "datetime": "2025-11-13T11:10:00" },
-    "return":    { "airportFrom": "Goldcoast", "airportTo": "Melbourne", "flightNumber": "V234", "datetime": "2025-11-16T13:10:00" }
+    "return":    { "airportFrom": "Goldcoast", "airportTo": "Melbourne", "flightNumber": "V234", "datetime": "2025-11-16T12:00:00" }
   },
   "accommodation": {
     "name": "Ultimate Vacation Haven",
     "address": "219 Stanhill Drive, Surfers Paradise",
     "checkIn": "2025-11-13 15:00",
     "checkOut": "2025-11-16 10:00",
-    "mapUrl": "https://google.com/maps/place/219+Stanhill+Dr,+Surfers+Paradise+QLD+4217/data=!4m2!3m1!1s0x6b91056ae35e27df:0x3f4aec0f228987ea?sa=X&ved=1t:242&ictx=111"
+    "mapUrl": "https://www.google.com/maps/search/?api=1&query=219+Stanhill+Dr,+Surfers+Paradise+QLD+4217"
   },
   "players": [
     { "name": "Stork",  "ranking": 3, "handicap": 0,  "profile": "Tall, long streak of misery. Loves the bitch slap style golf, but could have other things on his mind - his special lady Angie." },
