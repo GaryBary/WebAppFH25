@@ -129,12 +129,8 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
     if (!isAllowedGolfer(golfer)) {
       return res.status(400).json({ error: 'invalid_golfer' });
     }
-
-    // Prefer Stability AI first (temporary bypass of OpenAI); fallback to OpenAI if needed
+    // Use Stability AI only
     const stabilityKey = process.env.STABILITY_API_KEY;
-    const openaiKey = process.env.OPENAI_API_KEY;
-    const bypassOpenAI = process.env.BYPASS_OPENAI === 'true'; // Temporary bypass flag
-    
     if (stabilityKey) {
       try {
         // Define prompts for a realistic two-person golf scene (left preserved, add golfer on right)
@@ -191,105 +187,11 @@ app.post('/api/photo/generate', upload.single('image'), async (req, res) => {
         return res.json({ imageUrl: dataUrl, provider: 'stability' });
       } catch (e) {
         console.error('stability_failed', e);
-        // fall through to OpenAI or fallback
+        return res.status(502).json({ error: 'stability_failed' });
       }
     }
-    if (openaiKey && !bypassOpenAI) {
-      try {
-        // Convert uploaded image to PNG format and ensure proper size for editing
-        const userImage = await Jimp.read(req.file.buffer);
-        // Make it square and ensure it's under 4MB as required by OpenAI
-        const size = Math.min(userImage.getWidth(), userImage.getHeight());
-        userImage.crop(
-          (userImage.getWidth() - size) / 2,
-          (userImage.getHeight() - size) / 2,
-          size,
-          size
-        );
-        userImage.resize(1024, 1024);
-        const pngBuffer = await userImage.getBufferAsync(Jimp.MIME_PNG);
-        
-        // Check if image size is reasonable (under 4MB)
-        if (pngBuffer.length > 4 * 1024 * 1024) {
-          console.log('Image too large:', pngBuffer.length);
-          throw new Error('Image too large for OpenAI processing');
-        }
-        
-        // Use image editing with a right-side transparent mask to add the famous golfer
-        const positivePrompt = `Photorealistic color photo of two people on a sunny golf course. Keep the person from the input photo on the left unchanged. Add ${golfer} on the right, smiling with the person, both holding beers like best friends. Natural lighting, sharp detail, eye-level camera, bokeh background, golf green and flag visible. No text or watermark.`;
-        const negativePrompt = 'No cartoons, painting, cgi, 3d render, deformed, extra fingers, extra hands, duplicate people, text, watermark, logo.';
-        const prompt = `${positivePrompt}`;
-        
-        // Mask: left opaque (preserve), right transparent (edit)
-        const mask = await new Jimp(1024, 1024, 0x00ffffff);
-        const leftOpaque = await new Jimp(Math.floor(1024 * 0.54), 1024, 0xffffffff);
-        mask.composite(leftOpaque, 0, 0);
-        const maskBuffer = await mask.getBufferAsync(Jimp.MIME_PNG);
-        
-        const form = new FormData();
-        const blob = new Blob([pngBuffer], { type: 'image/png' });
-        const maskBlob = new Blob([maskBuffer], { type: 'image/png' });
-        form.append('image', blob, 'input.png');
-        form.append('prompt', prompt);
-        form.append('mask', maskBlob, 'mask.png');
-        form.append('size', '1024x1024');
-        form.append('response_format', 'b64_json');
-        // Include a negative prompt hint; some providers infer from text
-        form.append('n', '1');
-        
-        const r = await fetch('https://api.openai.com/v1/images/edits', {
-          method: 'POST',
-          headers: { 
-            'Authorization': `Bearer ${openaiKey}`
-          },
-          body: form
-        });
-        
-        if (!r.ok) {
-          const detail = await r.text();
-          console.log('OpenAI edits error:', detail);
-          // If OpenAI fails, we'll fall through to fallback
-          throw new Error(`OpenAI server error: ${detail}`);
-        }
-        const data = await r.json();
-        console.log('OpenAI edits response:', JSON.stringify(data, null, 2));
-        const b64 = data?.data?.[0]?.b64_json;
-        if (!b64) {
-          console.log('No b64_json found in edits response');
-          throw new Error('No image data in OpenAI response');
-        }
-        const dataUrl = `data:image/png;base64,${b64}`;
-        return res.json({ imageUrl: dataUrl, provider: 'openai' });
-      } catch (e) {
-        console.error('openai_failed', e);
-        // fall through to fallback
-      }
-    }
-
-    // Local MVP composite fallback (no keys required)
-    const width = 1024;
-    const height = 768;
-    const bg = await new Jimp(width, height, 0xff1f6d2a);
-    const vignette = await new Jimp(width, height, 0x00000040);
-    vignette.blur(50);
-    bg.composite(vignette, 0, 0, { mode: Jimp.BLEND_MULTIPLY });
-    const userImg = await Jimp.read(req.file.buffer);
-    const targetH = Math.min(520, userImg.getHeight());
-    userImg.scaleToFit(Math.floor(width * 0.45), targetH);
-    const userX = Math.floor(width * 0.06);
-    const userY = Math.floor(height * 0.18);
-    bg.composite(userImg, userX, userY);
-    const fontTitle = await Jimp.loadFont(Jimp.FONT_SANS_64_WHITE);
-    const fontSmall = await Jimp.loadFont(Jimp.FONT_SANS_32_WHITE);
-    const caption = `You & ${golfer}`;
-    bg.print(fontTitle, Math.floor(width * 0.52), Math.floor(height * 0.22), caption);
-    bg.print(fontSmall, Math.floor(width * 0.52), Math.floor(height * 0.22) + 80, 'On the green • beers • good times');
-    const out = await bg.getBufferAsync(Jimp.MIME_PNG);
-    const dataUrl = `data:image/png;base64,${out.toString('base64')}`;
-    const reason = bypassOpenAI 
-      ? (!process.env.STABILITY_API_KEY ? 'openai_bypassed_missing_stability_key' : 'stability_failed_openai_bypassed')
-      : (!process.env.STABILITY_API_KEY && !process.env.OPENAI_API_KEY ? 'missing_api_keys' : 'upstream_failed_or_disabled');
-    return res.json({ imageUrl: dataUrl, provider: 'fallback', reason });
+    // If we get here, Stability is not configured
+    return res.status(500).json({ error: 'stability_not_configured' });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ error: 'internal' });

@@ -10,8 +10,6 @@ services:
     envVars:
       - key: STABILITY_API_KEY
         sync: false
-      - key: BYPASS_OPENAI
-        value: true
       - key: OPENAI_API_KEY
         sync: false
       - key: MODEL
