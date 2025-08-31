@@ -156,13 +156,26 @@ function renderItinerary(items) {
 	});
 }
 
+function renderCountdownLabel(labelText) {
+	const labelEl = document.getElementById('countdown-label');
+	if (!labelEl) return;
+	const text = labelText || 'Count down until the Fat Hacks 2025 Tour: 13–16 Nov 2025';
+	const idx = text.lastIndexOf(':');
+	if (idx !== -1 && idx < text.length - 1) {
+		const prefix = text.slice(0, idx + 1).trim();
+		const date = text.slice(idx + 1).trim();
+		labelEl.innerHTML = `<span class="cd-prefix">${prefix}</span><span class="cd-date">${date}</span>`;
+	} else {
+		labelEl.textContent = text;
+	}
+}
+
 function startCountdown(targetIso, label) {
 	const daysEl = document.getElementById('cd-days');
 	const hoursEl = document.getElementById('cd-hours');
 	const minsEl = document.getElementById('cd-minutes');
 	const secsEl = document.getElementById('cd-seconds');
-	const labelEl = document.getElementById('countdown-label');
-	labelEl.textContent = label || 'Count down until the Fat Hacks 2025 Tour: 13–16 Nov 2025';
+	renderCountdownLabel(label);
 	const target = new Date(targetIso);
 	function tick() {
 		const now = new Date();

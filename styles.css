@@ -115,6 +115,8 @@ h1 {
 }
 .time-segment label { display: block; font-size: 12px; color: var(--muted); }
 .countdown-label { font-size: clamp(14px, 1.8vw, 18px); color: rgba(238,243,248,0.82); font-weight: 600; letter-spacing: .2px; margin-top: 2px; }
+.countdown-label .cd-prefix { display: block; }
+.countdown-label .cd-date { display: block; margin-top: 2px; }
 
 /* Make timer responsive so all segments (incl. seconds) are visible on small screens */
 @media (max-width: 520px) {
@@ -191,7 +193,7 @@ h2::after { content: ""; display: block; width: 56px; height: 2px; margin-top: 6
 .link { color: var(--accent-1); text-decoration: none; border-bottom: 1px dashed rgba(110,231,246,.5); }
 .link:hover { filter: saturate(1.1); }
 .link:focus-visible { outline: none; box-shadow: var(--focus-outline); border-radius: 4px; }
-.msg-form { display:flex; gap:8px; flex-wrap:wrap; }
+.msg-form { display:grid; grid-template-columns: 1fr; gap:10px; }
 #msg-author {
 	padding:10px 12px; border-radius:10px; border:1px solid var(--ring);
 	background: rgba(0,0,0,0.35); color: var(--fg);
@@ -215,8 +217,17 @@ h2::after { content: ""; display: block; width: 56px; height: 2px; margin-top: 6
 .msg-send:disabled, .chat-send:disabled { opacity: .6; cursor: not-allowed; }
 .msg-input:focus-visible, #msg-author:focus-visible { outline: none; box-shadow: var(--focus-outline); }
 
+/* Mobile-first overrides for Message Board */
+#msg-author, .msg-input { width: 100%; min-width: 0; border-radius: 12px; }
+.msg-send { width: 100%; border-radius: 12px; font-weight: 900; }
+@media (min-width: 520px) {
+	.msg-form { grid-template-columns: 180px 1fr auto; align-items: center; }
+	.msg-send { width: auto; }
+}
+
 /* Message list */
-.msg-item { padding: 14px !important; }
+#msg-list { display: grid; gap: 10px; }
+.msg-item { padding: 14px !important; border: 1px solid var(--border); }
 .msg-meta { color: var(--muted); font-size: 13px; margin-bottom: 6px; }
 
 /* Chat widget */
