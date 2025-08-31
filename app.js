@@ -253,6 +253,37 @@ function initUI(data) {
 	renderItinerary(data.looseItinerary || defaultData.looseItinerary);
 }
 
+// Scroll-driven animation system
+function initScrollAnimations() {
+	// Only run if user hasn't disabled motion
+	if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		return;
+	}
+
+	// Create intersection observer
+	const observer = new IntersectionObserver((entries) => {
+		entries.forEach(entry => {
+			if (entry.isIntersecting) {
+				entry.target.classList.add('animate-in');
+			} else {
+				entry.target.classList.remove('animate-in');
+			}
+		});
+	}, {
+		threshold: 0.2,
+		rootMargin: '0px 0px -50px 0px'
+	});
+
+	// Add scroll-animate class to all main sections
+	const sections = document.querySelectorAll('.section, .hero');
+	sections.forEach(section => {
+		section.classList.add('scroll-animate');
+		section.classList.remove('animate-in'); // Reset any existing state
+		observer.observe(section);
+	});
+}
+
+// Initialize animations after DOM is ready
+document.addEventListener('DOMContentLoaded', initScrollAnimations);
+
 loadConfig().then(initUI);
-
-
