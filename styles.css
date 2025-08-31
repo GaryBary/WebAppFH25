@@ -228,6 +228,11 @@ h2::after { content: ""; display: block; width: 56px; height: 2px; margin-top: 6
 	.msg-send { width: auto; }
 }
 
+/* Enforce 50% select width on small screens */
+@media (max-width: 520px) {
+	form#msg-form #msg-author { width: 50% !important; }
+}
+
 /* Message list */
 #msg-list { display: grid; gap: 10px; }
 .msg-item { padding: 14px !important; border: 1px solid var(--border); }
