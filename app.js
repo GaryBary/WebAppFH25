@@ -2,7 +2,7 @@
 const defaultData = {
 	site: {
 		title: "Fat Hacks 2025",
-		tourLabel: "until the Fat Hacks 2025 Tour:   13–16 Nov 2025",
+		tourLabel: "Count down until the Fat Hacks 2025 Tour: 13–16 Nov 2025",
 		tourDate: "2025-11-13T00:00:00Z",
 		hero: {
 			headline: "Fat Hacks 2025",
@@ -13,13 +13,11 @@ const defaultData = {
 		departure: {
 			airportFrom: "Home",
 			airportTo: "Destination",
-			flightNumber: "FH2025",
 			datetime: "2025-06-10T12:00:00Z"
 		},
 		return: {
 			airportFrom: "Destination",
 			airportTo: "Home",
-			flightNumber: "FH2025R",
 			datetime: "2025-06-20T17:00:00Z"
 		}
 	},
@@ -164,7 +162,7 @@ function startCountdown(targetIso, label) {
 	const minsEl = document.getElementById('cd-minutes');
 	const secsEl = document.getElementById('cd-seconds');
 	const labelEl = document.getElementById('countdown-label');
-	labelEl.textContent = label || 'until the Fat Hacks 2025 Tour:   13–16 Nov 2025';
+	labelEl.textContent = label || 'Count down until the Fat Hacks 2025 Tour: 13–16 Nov 2025';
 	const target = new Date(targetIso);
 	function tick() {
 		const now = new Date();

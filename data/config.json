@@ -1,13 +1,13 @@
 {
   "site": {
     "title": "Fat Hacks 2025",
-    "tourLabel": "until the Fat Hacks 2025 Tour:   13–16 Nov 2025",
+    "tourLabel": "Count down until the Fat Hacks 2025 Tour: 13–16 Nov 2025",
     "tourDate": "2025-11-13T00:00:00",
     "hero": { "headline": "Fat Hacks 2025", "subheadline": "Golf, Good Times, Booze & Shrooms" }
   },
   "flights": {
-    "departure": { "airportFrom": "Melbourne", "airportTo": "Goldcoast", "flightNumber": "V987", "datetime": "2025-11-13T11:10:00" },
-    "return":    { "airportFrom": "Goldcoast", "airportTo": "Melbourne", "flightNumber": "V234", "datetime": "2025-11-16T12:00:00" }
+    "departure": { "airportFrom": "Melbourne", "airportTo": "Goldcoast", "datetime": "2025-11-13T11:10:00" },
+    "return":    { "airportFrom": "Goldcoast", "airportTo": "Melbourne", "datetime": "2025-11-16T12:00:00" }
   },
   "accommodation": {
     "name": "Ultimate Vacation Haven",
@@ -19,8 +19,8 @@
   "players": [
     { "name": "Stork",  "ranking": 3, "handicap": 0,  "profile": "Tall, long streak of misery. Loves the bitch slap style golf, but could have other things on his mind - his special lady Angie." },
 		{ "name": "Ronnie", "ranking": 5, "handicap": 0, "profile": "The Street Sweeper seems more pre-occupied with keeping the streets clean rather then focusing on his golf - prefer others." },
-		{ "name": "Marty",  "ranking": 1, "handicap": 1, "profile": "Last years winner is back to do it all over again. He's fatter, angrier and more determined than ever - beware." },
-		{ "name": "Buzza",  "ranking": 2, "handicap": 0, "profile": "Somehow is always in the running. Laconic style, restless legs - could suprise." },
+		{ "name": "Marty",  "ranking": 1, "handicap": 2, "profile": "Last years winner is back to do it all over again. He's fatter, angrier and more determined than ever - beware." },
+		{ "name": "Buzza",  "ranking": 2, "handicap": 1, "profile": "Somehow is always in the running. Laconic style, restless legs - could suprise." },
 		{ "name": "Robbie", "ranking": 4, "handicap": 0,  "profile": "For the amount of rounds this guy accumulates in a year, would assume a good showing -likely to dissapoint again." },
  		{ "name": "Seko",  "ranking": 6, "handicap": 0, "profile": "Last years runner up is hungry again. If he can manage to keep his mind on the job instead of thinking about pulling his cock, he could be a show - but very fucking doubtful." }
   ],
