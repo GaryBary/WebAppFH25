@@ -164,7 +164,7 @@ function renderCountdownLabel(labelText) {
 	if (idx !== -1 && idx < text.length - 1) {
 		const prefix = text.slice(0, idx + 1).trim();
 		const date = text.slice(idx + 1).trim();
-		labelEl.innerHTML = `<span class="cd-prefix">${prefix}</span><span class="cd-date">${date}</span>`;
+		labelEl.innerHTML = `<span class="cd-prefix">${prefix}</span><br><span class="cd-date">${date}</span>`;
 	} else {
 		labelEl.textContent = text;
 	}
